@@ -1,16 +1,29 @@
-# Golf Engagement System - Golfclub Siek
+# ⛳ Golf Engagement System - Golfclub Siek
 
-Modernes digitales Mitgliederkommunikationssystem für den Golfclub Siek mit ~1000 Mitgliedern.
+**Vollständiges digitales Mitgliederkommunikationssystem** für den Golfclub Siek mit ~1000 Mitgliedern.
 
-## Features
+🚀 **Produktionsreif** | 📱 **Mobile-First** | 🎯 **Beginner-Friendly** | 🔒 **GDPR-Compliant**
 
-- ✅ Push-Benachrichtigungen (Platzstatus, Events, Änderungen)
-- ✅ Mitgliederverwaltung & Segmentierung
-- ✅ Event-Management & Anmeldungen
-- ✅ Social Feed / Schwarzes Brett
-- ✅ Admin-Dashboard für Clubmanagement
-- ✅ Native iOS & Android Apps
-- ✅ Web-Interface (React + Tailwind)
+---
+
+## ✨ Features
+
+### Core Features
+- ✅ **Push-Benachrichtigungen** (FCM) - Platzstatus, Events, Änderungen
+- ✅ **Mitgliederverwaltung & Segmentierung** - Dynamische Zielgruppen
+- ✅ **Event-Management** - Turniere, Trainings mit Anmeldung & Wartelisten
+- ✅ **Social Feed** - Community-Posts, Comments, Likes
+- ✅ **Admin-Dashboard** - React + Tailwind Web-Interface
+- ✅ **Native Mobile Apps** - iOS & Android (React Native + Expo)
+- ✅ **Real-time Updates** - WebSocket für Live-Updates
+
+### Advanced Features
+- 🏆 **Gamification** - Achievements, Leaderboards, Punkte-System
+- 🤖 **AI-Personalisierung** - OpenAI-gestützte Content-Empfehlungen
+- 🌤️ **Weather Integration** - Live-Wetter & Platz-Bespielbarkeit
+- 👥 **Zwei-Personas-Modus** - Vollmitglied vs. Beginner/Gelegenheitsspieler
+- 📧 **Email-Marketing** - Brevo/Sendinblue Integration
+- 📊 **Analytics** - Umfassende Statistiken & Reports
 
 ## Architektur
 
