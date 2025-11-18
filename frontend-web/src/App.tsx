@@ -7,6 +7,11 @@ import EventsPage from './pages/EventsPage';
 import NotificationsPage from './pages/NotificationsPage';
 import FeedPage from './pages/FeedPage';
 import SegmentsPage from './pages/SegmentsPage';
+import TeeTimePage from './pages/TeeTimePage';
+import MyBookingsPage from './pages/MyBookingsPage';
+import HandicapPage from './pages/HandicapPage';
+import PaymentsPage from './pages/PaymentsPage';
+import QRCodePage from './pages/QRCodePage';
 import Layout from './components/Layout';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
@@ -32,6 +37,11 @@ export default function App() {
         <Route path="notifications" element={<NotificationsPage />} />
         <Route path="feed" element={<FeedPage />} />
         <Route path="segments" element={<SegmentsPage />} />
+        <Route path="tee-times" element={<TeeTimePage />} />
+        <Route path="my-bookings" element={<MyBookingsPage />} />
+        <Route path="handicap" element={<HandicapPage />} />
+        <Route path="payments" element={<PaymentsPage />} />
+        <Route path="qr-codes" element={<QRCodePage />} />
       </Route>
     </Routes>
   );

@@ -103,3 +103,89 @@ export const segmentsApi = {
   delete: (id: string) => api.delete(`/segments/${id}`),
   recalculate: (id: string) => api.post(`/segments/${id}/recalculate`),
 };
+
+export const teeTimeApi = {
+  getSlots: (params: { date: string; course?: string }) =>
+    api.get('/tee-times', { params }),
+  bookSlot: (slotId: string, data: { players: number; playerIds?: string[]; notes?: string }) =>
+    api.post(`/tee-times/${slotId}/book`, data),
+  getMyBookings: (params?: { upcoming?: boolean }) =>
+    api.get('/tee-times/bookings/me', { params }),
+  cancelBooking: (bookingId: string) =>
+    api.delete(`/tee-times/bookings/${bookingId}`),
+  generateSlots: (data: { startDate: string; endDate: string; course?: string }) =>
+    api.post('/tee-times/admin/generate', data),
+  blockSlot: (slotId: string, reason: string) =>
+    api.post(`/tee-times/admin/${slotId}/block`, { reason }),
+  unblockSlot: (slotId: string) =>
+    api.delete(`/tee-times/admin/${slotId}/block`),
+  getStatistics: (params?: { startDate?: string; endDate?: string }) =>
+    api.get('/tee-times/statistics', { params }),
+};
+
+export const paymentsApi = {
+  getSubscriptionPlans: () => api.get('/payments/subscription-plans'),
+  createEventCheckout: (eventId: string, amount: number) =>
+    api.post('/payments/event/checkout', { eventId, amount }),
+  createSubscription: (planId: string) =>
+    api.post('/payments/subscriptions', { planId }),
+  cancelSubscription: (subscriptionId: string, cancelAtPeriodEnd?: boolean) =>
+    api.delete(`/payments/subscriptions/${subscriptionId}`, {
+      data: { cancelAtPeriodEnd },
+    }),
+  getMyPayments: (params?: { limit?: number; offset?: number }) =>
+    api.get('/payments/me', { params }),
+  getMySubscriptions: () => api.get('/payments/subscriptions/me'),
+  processRefund: (paymentId: string, data?: { amount?: number; reason?: string }) =>
+    api.post(`/payments/${paymentId}/refund`, data),
+};
+
+export const handicapApi = {
+  submitRound: (data: {
+    courseId?: string;
+    date: string;
+    strokes: number;
+    coursePar?: number;
+    courseRating?: number;
+    slopeRating?: number;
+  }) => api.post('/handicap/rounds', data),
+  getMyRounds: (params?: { limit?: number; verified?: boolean }) =>
+    api.get('/handicap/rounds/me', { params }),
+  getMyHistory: (params?: { limit?: number }) =>
+    api.get('/handicap/history/me', { params }),
+  getPlayingHandicap: (data: {
+    courseRating: number;
+    slopeRating: number;
+    coursePar: number;
+  }) => api.post('/handicap/playing-handicap', data),
+  deleteRound: (roundId: string) => api.delete(`/handicap/rounds/${roundId}`),
+  verifyRound: (roundId: string) =>
+    api.post(`/handicap/admin/rounds/${roundId}/verify`),
+  getStats: () => api.get('/handicap/admin/stats'),
+  getMemberRounds: (memberId: string, params?: { limit?: number; verified?: boolean }) =>
+    api.get(`/handicap/members/${memberId}/rounds`, { params }),
+};
+
+export const qrApi = {
+  generateEventQR: (eventId: string) => api.post('/qr/event', { eventId }),
+  generateTeeTimeQR: (bookingId: string) => api.post('/qr/teetime', { bookingId }),
+  getNextEventQR: () => api.get('/qr/next-event'),
+  getNextTeeTimeQR: () => api.get('/qr/next-teetime'),
+  processCheckIn: (qrData: string) => api.post('/qr/checkin', { qrData }),
+};
+
+export const tournamentApi = {
+  createTournament: (data: {
+    eventId: string;
+    format: 'STROKE_PLAY' | 'STABLEFORD' | 'MATCH_PLAY';
+    startTime: string;
+    holes: number;
+  }) => api.post('/tournaments', data),
+  startTournament: (id: string) => api.post(`/tournaments/${id}/start`),
+  endTournament: (id: string) => api.post(`/tournaments/${id}/end`),
+  submitScore: (id: string, data: { hole: number; strokes: number }) =>
+    api.post(`/tournaments/${id}/score`, data),
+  getLeaderboard: (id: string) => api.get(`/tournaments/${id}/leaderboard`),
+  getMyScore: (id: string) => api.get(`/tournaments/${id}/my-score`),
+  getActiveTournaments: () => api.get('/tournaments/active'),
+};

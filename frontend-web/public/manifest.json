@@ -1,0 +1,51 @@
+{
+  "name": "Golf Engagement - Golfclub Siek",
+  "short_name": "Golf Siek",
+  "description": "Mitglieder-App für Golfclub Siek",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#059669",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["sports", "lifestyle"],
+  "lang": "de-DE",
+  "dir": "ltr",
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Tee-Time buchen",
+      "short_name": "Tee-Time",
+      "description": "Abschlagszeit buchen",
+      "url": "/tee-times",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Events",
+      "short_name": "Events",
+      "description": "Veranstaltungen ansehen",
+      "url": "/events",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Handicap",
+      "short_name": "Handicap",
+      "description": "Handicap verwalten",
+      "url": "/handicap",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

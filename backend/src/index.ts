@@ -21,6 +21,7 @@ import paymentRoutes, { webhookRouter } from './modules/payments/payment.routes'
 import pcCaddieSyncRoutes from './modules/pccaddie/pccaddie-sync.routes';
 import handicapRoutes from './modules/handicap/handicap.routes';
 import qrCheckInRoutes from './modules/qr-checkin/qr-checkin.routes';
+import tournamentRoutes from './modules/tournament/tournament.routes';
 
 const app = express();
 const httpServer = createServer(app);
@@ -96,6 +97,7 @@ apiRouter.use('/payments', paymentRoutes);
 apiRouter.use('/pccaddie', pcCaddieSyncRoutes);
 apiRouter.use('/handicap', handicapRoutes);
 apiRouter.use('/qr', qrCheckInRoutes);
+apiRouter.use('/tournaments', tournamentRoutes);
 
 app.use(`/api/${env.API_VERSION}`, apiRouter);
 

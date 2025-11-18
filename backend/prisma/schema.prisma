@@ -89,6 +89,7 @@ model Member {
   subscriptions       Subscription[]
   handicapHistory     HandicapHistory[]
   rounds              Round[]
+  tournamentScores    TournamentScore[]
 
   @@index([email])
   @@index([membershipType, membershipStatus])
@@ -199,6 +200,7 @@ model Event {
   // Relations
   targetSegments Segment[]           @relation("EventTargetSegments", references: [id])
   registrations  EventRegistration[]
+  tournaments    Tournament[]
 
   @@index([startDate])
   @@index([type, status])
@@ -766,4 +768,65 @@ model Round {
 
   @@index([memberId, date])
   @@map("rounds")
+}
+
+// ============================================================================
+// TOURNAMENT SYSTEM
+// ============================================================================
+
+enum TournamentFormat {
+  STROKE_PLAY
+  STABLEFORD
+  MATCH_PLAY
+}
+
+enum TournamentStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+model Tournament {
+  id      String @id @default(uuid())
+  eventId String
+
+  format TournamentFormat
+  status TournamentStatus @default(SCHEDULED)
+
+  startTime DateTime
+  holes     Int      @default(18)
+
+  startedAt   DateTime?
+  completedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  event  Event             @relation(fields: [eventId], references: [id])
+  scores TournamentScore[]
+
+  @@index([eventId, status])
+  @@map("tournaments")
+}
+
+model TournamentScore {
+  id           String @id @default(uuid())
+  tournamentId String
+  memberId     String
+
+  holes           Json // { "1": 4, "2": 5, ... }
+  totalStrokes    Int  @default(0)
+  holesCompleted  Int  @default(0)
+  stablefordPoints Int? // For Stableford format
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tournament Tournament @relation(fields: [tournamentId], references: [id])
+  member     Member     @relation(fields: [memberId], references: [id])
+
+  @@unique([tournamentId, memberId])
+  @@index([tournamentId, totalStrokes])
+  @@map("tournament_scores")
 }
