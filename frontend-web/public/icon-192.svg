@@ -1,0 +1,13 @@
+<svg width="192" height="192" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#059669;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#10b981;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="192" height="192" fill="url(#grad)" rx="40"/>
+  <circle cx="96" cy="70" r="25" fill="white" opacity="0.9"/>
+  <ellipse cx="96" cy="140" rx="40" ry="15" fill="white" opacity="0.9"/>
+  <path d="M 96 70 L 96 125" stroke="white" stroke-width="4" opacity="0.9"/>
+  <text x="96" y="165" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="white" text-anchor="middle">GOLF</text>
+</svg>

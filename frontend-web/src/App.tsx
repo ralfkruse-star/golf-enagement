@@ -12,6 +12,7 @@ import MyBookingsPage from './pages/MyBookingsPage';
 import HandicapPage from './pages/HandicapPage';
 import PaymentsPage from './pages/PaymentsPage';
 import QRCodePage from './pages/QRCodePage';
+import TournamentsPage from './pages/TournamentsPage';
 import Layout from './components/Layout';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
@@ -40,6 +41,7 @@ export default function App() {
         <Route path="tee-times" element={<TeeTimePage />} />
         <Route path="my-bookings" element={<MyBookingsPage />} />
         <Route path="handicap" element={<HandicapPage />} />
+        <Route path="tournaments" element={<TournamentsPage />} />
         <Route path="payments" element={<PaymentsPage />} />
         <Route path="qr-codes" element={<QRCodePage />} />
       </Route>

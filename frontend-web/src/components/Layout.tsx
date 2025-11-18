@@ -1,6 +1,9 @@
 import { Outlet, NavLink } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
-import { Users, Calendar, Bell, MessageSquare, LayoutDashboard, Layers, LogOut } from 'lucide-react';
+import {
+  Users, Calendar, Bell, MessageSquare, LayoutDashboard, Layers,
+  Clock, Trophy, CreditCard, QrCode, Target, LogOut
+} from 'lucide-react';
 
 export default function Layout() {
   const { user, logout } = useAuthStore();
@@ -12,6 +15,12 @@ export default function Layout() {
     { to: '/notifications', icon: Bell, label: 'Push' },
     { to: '/feed', icon: MessageSquare, label: 'Feed' },
     { to: '/segments', icon: Layers, label: 'Segmente' },
+    { to: '/tee-times', icon: Clock, label: 'Tee-Times' },
+    { to: '/my-bookings', icon: Calendar, label: 'Meine Buchungen' },
+    { to: '/handicap', icon: Target, label: 'Handicap' },
+    { to: '/tournaments', icon: Trophy, label: 'Turniere' },
+    { to: '/payments', icon: CreditCard, label: 'Zahlungen' },
+    { to: '/qr-codes', icon: QrCode, label: 'QR-Codes' },
   ];
 
   return (
