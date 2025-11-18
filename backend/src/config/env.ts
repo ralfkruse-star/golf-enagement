@@ -22,10 +22,16 @@ const envSchema = z.object({
 
   // CORS
   CORS_ORIGIN: z.string().default('http://localhost:5173'),
+  FRONTEND_URL: z.string().url().default('http://localhost:5173'),
 
   // FCM
   FCM_SERVER_KEY: z.string().optional(),
   FCM_PROJECT_ID: z.string().optional(),
+
+  // Stripe
+  STRIPE_SECRET_KEY: z.string().optional(),
+  STRIPE_WEBHOOK_SECRET: z.string().optional(),
+  STRIPE_PUBLIC_KEY: z.string().optional(),
 
   // Rate Limiting
   RATE_LIMIT_WINDOW_MS: z.string().default('60000'),

@@ -84,6 +84,11 @@ model Member {
   notifications       Notification[]
   auditLogs           AuditLog[]
   achievements        MemberAchievement[]
+  teeTimeBookings     TeeTimeBooking[]
+  payments            Payment[]
+  subscriptions       Subscription[]
+  handicapHistory     HandicapHistory[]
+  rounds              Round[]
 
   @@index([email])
   @@index([membershipType, membershipStatus])
@@ -517,4 +522,248 @@ model Setting {
   updatedAt DateTime @updatedAt
 
   @@map("settings")
+}
+
+// ============================================================================
+// TEE-TIME BOOKING SYSTEM
+// ============================================================================
+
+enum TeeTimeStatus {
+  AVAILABLE
+  PARTIAL
+  FULL
+  BLOCKED
+  COMPLETED
+}
+
+model TeeTimeSlot {
+  id   String @id @default(uuid())
+  date DateTime
+  time String // "08:00", "08:10", etc.
+
+  maxPlayers     Int @default(4)
+  currentPlayers Int @default(0)
+
+  status      TeeTimeStatus @default(AVAILABLE)
+  isBlocked   Boolean       @default(false)
+  blockReason String?
+
+  course String @default("main")
+  holes  Int    @default(18)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  bookings TeeTimeBooking[]
+
+  @@unique([date, time, course])
+  @@index([date, status])
+  @@map("tee_time_slots")
+}
+
+enum BookingStatus {
+  CONFIRMED
+  WAITLIST
+  CANCELLED
+  NO_SHOW
+  COMPLETED
+}
+
+model TeeTimeBooking {
+  id String @id @default(uuid())
+
+  slotId   String
+  memberId String
+
+  players   Int      @default(1)
+  playerIds String[]
+
+  status BookingStatus @default(CONFIRMED)
+
+  bookedAt    DateTime  @default(now())
+  cancelledAt DateTime?
+
+  isRecurring      Boolean @default(false)
+  recurringPattern Json?
+
+  notes String?
+
+  slot   TeeTimeSlot @relation(fields: [slotId], references: [id], onDelete: Cascade)
+  member Member      @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@index([slotId, status])
+  @@index([memberId, bookedAt])
+  @@map("tee_time_bookings")
+}
+
+model TeeTimeConfiguration {
+  id String @id @default(uuid())
+
+  startTime String @default("07:00")
+  endTime   String @default("20:00")
+  interval  Int    @default(10)
+
+  advanceBookingDays        Json @default("{\"FULL\":7,\"GUEST\":3}")
+  cancellationDeadlineHours Int  @default(24)
+  noShowPenaltyDays         Int  @default(7)
+
+  isActive Boolean @default(true)
+
+  updatedAt DateTime @updatedAt
+
+  @@map("tee_time_configuration")
+}
+
+// ============================================================================
+// PAYMENT SYSTEM
+// ============================================================================
+
+enum PaymentType {
+  EVENT_FEE
+  MEMBERSHIP
+  MERCHANDISE
+  SERVICE
+  TEE_TIME
+  OTHER
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  SUCCEEDED
+  FAILED
+  CANCELLED
+  REFUNDED
+}
+
+model Payment {
+  id String @id @default(uuid())
+
+  memberId String
+  amount   Int
+  currency String @default("EUR")
+
+  type   PaymentType
+  status PaymentStatus @default(PENDING)
+
+  eventId        String?
+  teeTimeSlotId  String?
+  subscriptionId String?
+
+  stripePaymentIntentId   String? @unique
+  stripeCheckoutSessionId String? @unique
+
+  description String?
+  receiptUrl  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  paidAt    DateTime?
+
+  member Member @relation(fields: [memberId], references: [id])
+
+  @@index([memberId, status])
+  @@map("payments")
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELLED
+  UNPAID
+}
+
+model Subscription {
+  id String @id @default(uuid())
+
+  memberId String
+  planId   String
+
+  stripeSubscriptionId String @unique
+  stripeCustomerId     String
+
+  status SubscriptionStatus @default(ACTIVE)
+
+  currentPeriodStart DateTime
+  currentPeriodEnd   DateTime
+
+  cancelAtPeriodEnd Boolean   @default(false)
+  cancelledAt       DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  member Member           @relation(fields: [memberId], references: [id])
+  plan   SubscriptionPlan @relation(fields: [planId], references: [id])
+
+  @@index([memberId, status])
+  @@map("subscriptions")
+}
+
+model SubscriptionPlan {
+  id   String @id @default(uuid())
+  name String @unique
+
+  description String?
+
+  amount   Int
+  currency String @default("EUR")
+  interval String @default("year")
+
+  stripePriceId String @unique
+
+  isActive Boolean @default(true)
+
+  subscriptions Subscription[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("subscription_plans")
+}
+
+// ============================================================================
+// HANDICAP SYSTEM
+// ============================================================================
+
+model HandicapHistory {
+  id String @id @default(uuid())
+
+  memberId String
+
+  handicap Float
+  date     DateTime @default(now())
+
+  roundId String?
+  reason  String? // "tournament", "casual_round", "adjustment"
+
+  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@index([memberId, date])
+  @@map("handicap_history")
+}
+
+model Round {
+  id String @id @default(uuid())
+
+  memberId  String
+  courseId  String  @default("main")
+  date      DateTime
+  strokes   Int
+  coursePar Int     @default(72)
+
+  courseRating Float @default(72.0)
+  slopeRating  Int   @default(113)
+
+  handicapBefore Float
+  handicapAfter  Float?
+
+  verified Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  member Member @relation(fields: [memberId], references: [id])
+
+  @@index([memberId, date])
+  @@map("rounds")
 }

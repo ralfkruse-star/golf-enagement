@@ -16,6 +16,11 @@ import notificationsRoutes from './modules/notifications/notifications.routes';
 import eventsRoutes from './modules/events/events.routes';
 import feedRoutes from './modules/feed/feed.routes';
 import segmentsRoutes from './modules/segments/segments.routes';
+import teeTimeRoutes from './modules/teetime/teetime.routes';
+import paymentRoutes, { webhookRouter } from './modules/payments/payment.routes';
+import pcCaddieSyncRoutes from './modules/pccaddie/pccaddie-sync.routes';
+import handicapRoutes from './modules/handicap/handicap.routes';
+import qrCheckInRoutes from './modules/qr-checkin/qr-checkin.routes';
 
 const app = express();
 const httpServer = createServer(app);
@@ -34,6 +39,9 @@ app.use(
     credentials: true,
   })
 );
+
+// Stripe webhook (BEFORE express.json - needs raw body)
+app.use('/api/v1', webhookRouter);
 
 // Body parsing
 app.use(express.json({ limit: '10mb' }));
@@ -83,6 +91,11 @@ apiRouter.use('/notifications', notificationsRoutes);
 apiRouter.use('/events', eventsRoutes);
 apiRouter.use('/feed', feedRoutes);
 apiRouter.use('/segments', segmentsRoutes);
+apiRouter.use('/tee-times', teeTimeRoutes);
+apiRouter.use('/payments', paymentRoutes);
+apiRouter.use('/pccaddie', pcCaddieSyncRoutes);
+apiRouter.use('/handicap', handicapRoutes);
+apiRouter.use('/qr', qrCheckInRoutes);
 
 app.use(`/api/${env.API_VERSION}`, apiRouter);
 
