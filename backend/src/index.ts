@@ -1,4 +1,5 @@
 import express from 'express';
+import { createServer } from 'http';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
@@ -6,12 +7,18 @@ import rateLimit from 'express-rate-limit';
 import { env } from './config/env';
 import { logger } from './config/logger';
 import { errorHandler, notFoundHandler } from './shared/middleware/error.middleware';
+import { websocketService } from './shared/services/websocket.service';
 
 // Import routes
 import authRoutes from './modules/auth/auth.routes';
 import membersRoutes from './modules/members/members.routes';
+import notificationsRoutes from './modules/notifications/notifications.routes';
+import eventsRoutes from './modules/events/events.routes';
+import feedRoutes from './modules/feed/feed.routes';
+import segmentsRoutes from './modules/segments/segments.routes';
 
 const app = express();
+const httpServer = createServer(app);
 
 // ============================================================================
 // MIDDLEWARE
@@ -72,6 +79,10 @@ const apiRouter = express.Router();
 
 apiRouter.use('/auth', authRoutes);
 apiRouter.use('/members', membersRoutes);
+apiRouter.use('/notifications', notificationsRoutes);
+apiRouter.use('/events', eventsRoutes);
+apiRouter.use('/feed', feedRoutes);
+apiRouter.use('/segments', segmentsRoutes);
 
 app.use(`/api/${env.API_VERSION}`, apiRouter);
 
@@ -83,16 +94,20 @@ app.use(notFoundHandler);
 app.use(errorHandler);
 
 // ============================================================================
-// START SERVER
+// START SERVER & WEBSOCKET
 // ============================================================================
 
 const PORT = env.PORT || 3000;
 
-app.listen(PORT, () => {
+// Initialize WebSocket server
+websocketService.initialize(httpServer);
+
+httpServer.listen(PORT, () => {
   logger.info(`🚀 Golf Engagement API running on port ${PORT}`);
   logger.info(`📝 Environment: ${env.NODE_ENV}`);
   logger.info(`🌐 API Version: ${env.API_VERSION}`);
   logger.info(`📍 http://localhost:${PORT}`);
+  logger.info(`🔌 WebSocket enabled on ws://localhost:${PORT}`);
 });
 
 // Handle unhandled rejections
