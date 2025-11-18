@@ -1,0 +1,520 @@
+// Golf Engagement System - Database Schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// MEMBERS & AUTH
+// ============================================================================
+
+enum MembershipType {
+  FULL
+  JUNIOR
+  SENIOR
+  GUEST
+  HONORARY
+  TRIAL
+}
+
+enum MembershipStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  PENDING
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  MEMBER
+  GUEST
+}
+
+model Member {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String   // bcrypt hashed
+  firstName String
+  lastName  String
+
+  // Membership
+  membershipType   MembershipType
+  membershipStatus MembershipStatus @default(PENDING)
+  membershipNumber String?          @unique
+  role             UserRole         @default(MEMBER)
+
+  // Golf Data
+  handicap  Float?
+  birthDate DateTime?
+  gender    String?   // M, F, O
+
+  // Contact
+  phone     String?
+  address   String?
+  city      String?
+  zipCode   String?
+
+  // Metadata
+  joinDate      DateTime  @default(now())
+  lastLoginAt   DateTime?
+  emailVerified Boolean   @default(false)
+
+  // Preferences
+  notificationPreferences Json? // { push: true, email: true, sms: false, ... }
+  language                String @default("de")
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime? // Soft delete for GDPR
+
+  // Relations
+  segments            MemberSegmentAssignment[]
+  eventRegistrations  EventRegistration[]
+  feedPosts           FeedPost[]
+  feedComments        FeedComment[]
+  feedLikes           FeedLike[]
+  pushTokens          PushToken[]
+  notifications       Notification[]
+  auditLogs           AuditLog[]
+  achievements        MemberAchievement[]
+
+  @@index([email])
+  @@index([membershipType, membershipStatus])
+  @@index([lastName, firstName])
+  @@map("members")
+}
+
+// ============================================================================
+// SEGMENTATION
+// ============================================================================
+
+model Segment {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+
+  // Criteria (JSON)
+  // Example: { membershipType: ["FULL", "SENIOR"], ageRange: [50, 100], handicapRange: [0, 20] }
+  criteria Json
+
+  // Metadata
+  isSystem    Boolean @default(false) // Built-in segments like "all-members"
+  memberCount Int     @default(0)     // Cached count
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  members          MemberSegmentAssignment[]
+  targetedEvents   Event[]                   @relation("EventTargetSegments")
+  targetedPosts    FeedPost[]                @relation("FeedPostTargetSegments")
+  notifications    Notification[]            @relation("NotificationTargetSegments")
+
+  @@map("segments")
+}
+
+model MemberSegmentAssignment {
+  memberId  String
+  segmentId String
+
+  assignedAt DateTime @default(now())
+
+  member  Member  @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  segment Segment @relation(fields: [segmentId], references: [id], onDelete: Cascade)
+
+  @@id([memberId, segmentId])
+  @@map("member_segment_assignments")
+}
+
+// ============================================================================
+// EVENTS
+// ============================================================================
+
+enum EventType {
+  TOURNAMENT
+  TRAINING
+  SOCIAL
+  MEETING
+  COURSE_MAINTENANCE
+  OTHER
+}
+
+enum EventStatus {
+  DRAFT
+  PUBLISHED
+  CANCELLED
+  COMPLETED
+}
+
+model Event {
+  id          String      @id @default(uuid())
+  title       String
+  description String?
+  type        EventType
+  status      EventStatus @default(DRAFT)
+
+  // Date & Time
+  startDate DateTime
+  endDate   DateTime?
+
+  // Location
+  location String?
+
+  // Capacity
+  maxParticipants     Int?
+  currentParticipants Int      @default(0)
+  waitlistEnabled     Boolean  @default(true)
+
+  // Registration
+  registrationDeadline DateTime?
+  requiresApproval     Boolean   @default(false)
+
+  // Visibility
+  isPublic Boolean @default(true)
+
+  // Media
+  imageUrl    String?
+  attachments Json? // Array of URLs
+
+  // Targeting
+  targetSegmentIds String[] // Array of segment IDs
+
+  // Metadata
+  createdById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  targetSegments Segment[]           @relation("EventTargetSegments", references: [id])
+  registrations  EventRegistration[]
+
+  @@index([startDate])
+  @@index([type, status])
+  @@map("events")
+}
+
+enum RegistrationStatus {
+  CONFIRMED
+  WAITLIST
+  CANCELLED
+  REJECTED
+}
+
+model EventRegistration {
+  id String @id @default(uuid())
+
+  eventId  String
+  memberId String
+
+  status       RegistrationStatus @default(CONFIRMED)
+  waitlistPos  Int?               // Position on waitlist
+  comment      String?            // Optional message from member
+  approvedBy   String?            // Admin who approved (if requiresApproval)
+  approvedAt   DateTime?
+  cancelledAt  DateTime?
+
+  registeredAt DateTime @default(now())
+
+  event  Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, memberId])
+  @@index([eventId, status])
+  @@map("event_registrations")
+}
+
+// ============================================================================
+// SOCIAL FEED
+// ============================================================================
+
+enum FeedPostType {
+  ANNOUNCEMENT
+  EVENT
+  ACHIEVEMENT
+  GENERAL
+  PHOTO
+  VIDEO
+}
+
+model FeedPost {
+  id      String       @id @default(uuid())
+  content String
+  type    FeedPostType @default(GENERAL)
+
+  // Media
+  mediaUrls Json? // Array of image/video URLs
+
+  // Visibility
+  isPinned    Boolean @default(false)
+  isPublished Boolean @default(true)
+
+  // Targeting
+  targetSegmentIds String[] // Empty = all members
+
+  // Engagement
+  likeCount    Int @default(0)
+  commentCount Int @default(0)
+  viewCount    Int @default(0)
+
+  // Author
+  authorId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  // Relations
+  author         Member        @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  targetSegments Segment[]     @relation("FeedPostTargetSegments", references: [id])
+  comments       FeedComment[]
+  likes          FeedLike[]
+
+  @@index([createdAt])
+  @@index([isPinned, isPublished])
+  @@map("feed_posts")
+}
+
+model FeedComment {
+  id      String @id @default(uuid())
+  content String
+
+  postId   String
+  authorId String
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  post   FeedPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author Member   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([postId, createdAt])
+  @@map("feed_comments")
+}
+
+model FeedLike {
+  postId   String
+  memberId String
+
+  createdAt DateTime @default(now())
+
+  post   FeedPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  member Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@id([postId, memberId])
+  @@map("feed_likes")
+}
+
+// ============================================================================
+// NOTIFICATIONS
+// ============================================================================
+
+enum NotificationType {
+  PUSH
+  EMAIL
+  SMS
+  IN_APP
+}
+
+enum NotificationPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+enum NotificationStatus {
+  DRAFT
+  SCHEDULED
+  SENDING
+  SENT
+  FAILED
+  CANCELLED
+}
+
+model Notification {
+  id    String           @id @default(uuid())
+  title String
+  body  String
+  type  NotificationType @default(PUSH)
+
+  // Delivery
+  priority   NotificationPriority @default(NORMAL)
+  status     NotificationStatus   @default(DRAFT)
+
+  // Targeting
+  recipientSegmentIds String[] // Segment IDs
+  recipientIds        String[] // Specific member IDs (optional, overrides segments)
+
+  // Scheduling
+  scheduledAt DateTime?
+  sentAt      DateTime?
+  expiresAt   DateTime?
+
+  // Payload
+  data Json? // Custom data (e.g., deeplink, action buttons)
+
+  // Media
+  imageUrl String?
+
+  // Delivery Stats
+  totalRecipients Int @default(0)
+  successCount    Int @default(0)
+  failureCount    Int @default(0)
+
+  // Metadata
+  createdById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  targetSegments Segment[] @relation("NotificationTargetSegments", references: [id])
+
+  @@index([status, scheduledAt])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+model PushToken {
+  id    String @id @default(uuid())
+  token String @unique
+
+  memberId String
+
+  platform String // ios, android, web
+
+  isActive  Boolean   @default(true)
+  lastUsed  DateTime  @default(now())
+  createdAt DateTime  @default(now())
+  expiresAt DateTime?
+
+  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@index([memberId, isActive])
+  @@map("push_tokens")
+}
+
+// ============================================================================
+// GAMIFICATION
+// ============================================================================
+
+enum AchievementType {
+  ATTENDANCE
+  PARTICIPATION
+  SCORE
+  MILESTONE
+  SOCIAL
+  OTHER
+}
+
+model Achievement {
+  id          String          @id @default(uuid())
+  name        String          @unique
+  description String
+  type        AchievementType
+
+  iconUrl String?
+  points  Int     @default(0) // Points awarded
+
+  // Criteria (JSON)
+  criteria Json
+
+  isActive  Boolean @default(true)
+  createdAt DateTime @default(now())
+
+  members MemberAchievement[]
+
+  @@map("achievements")
+}
+
+model MemberAchievement {
+  memberId      String
+  achievementId String
+
+  earnedAt DateTime @default(now())
+
+  member      Member      @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  achievement Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+
+  @@id([memberId, achievementId])
+  @@index([memberId, earnedAt])
+  @@map("member_achievements")
+}
+
+// ============================================================================
+// AUDIT & LOGGING
+// ============================================================================
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  LOGIN
+  LOGOUT
+  EXPORT
+  OTHER
+}
+
+model AuditLog {
+  id String @id @default(uuid())
+
+  memberId String?
+  action   AuditAction
+  resource String // "member", "event", etc.
+
+  resourceId String?
+  changes    Json? // Before/after snapshot
+
+  ipAddress String?
+  userAgent String?
+
+  createdAt DateTime @default(now())
+
+  member Member? @relation(fields: [memberId], references: [id], onDelete: SetNull)
+
+  @@index([memberId, createdAt])
+  @@index([resource, resourceId])
+  @@map("audit_logs")
+}
+
+// ============================================================================
+// MEDIA
+// ============================================================================
+
+model Media {
+  id       String @id @default(uuid())
+  filename String
+  mimeType String
+  size     Int // bytes
+
+  url         String
+  thumbnailUrl String?
+
+  uploadedBy String?
+
+  createdAt DateTime @default(now())
+
+  @@map("media")
+}
+
+// ============================================================================
+// SYSTEM SETTINGS
+// ============================================================================
+
+model Setting {
+  key   String @id
+  value Json
+
+  description String?
+
+  updatedAt DateTime @updatedAt
+
+  @@map("settings")
+}
