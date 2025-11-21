@@ -22,6 +22,9 @@ import pcCaddieSyncRoutes from './modules/pccaddie/pccaddie-sync.routes';
 import handicapRoutes from './modules/handicap/handicap.routes';
 import qrCheckInRoutes from './modules/qr-checkin/qr-checkin.routes';
 import tournamentRoutes from './modules/tournament/tournament.routes';
+import gamificationRoutes from './modules/gamification/gamification.routes';
+import weatherRoutes from './modules/weather/weather.routes';
+import analyticsRoutes from './modules/analytics/analytics.routes';
 
 const app = express();
 const httpServer = createServer(app);
@@ -98,6 +101,9 @@ apiRouter.use('/pccaddie', pcCaddieSyncRoutes);
 apiRouter.use('/handicap', handicapRoutes);
 apiRouter.use('/qr', qrCheckInRoutes);
 apiRouter.use('/tournaments', tournamentRoutes);
+apiRouter.use('/gamification', gamificationRoutes);
+apiRouter.use('/weather', weatherRoutes);
+apiRouter.use('/analytics', analyticsRoutes);
 
 app.use(`/api/${env.API_VERSION}`, apiRouter);
 
