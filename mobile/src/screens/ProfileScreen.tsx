@@ -1,10 +1,13 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '../store/authStore';
+import { useAppStore } from '../store/appStore';
 import { COLORS, SPACING, FONT_SIZES, MEMBERSHIP_TYPES } from '../constants';
 
 export default function ProfileScreen() {
   const { user, logout } = useAuthStore();
+  const { personaMode, showPersonaModal } = useAppStore();
 
   const handleLogout = () => {
     Alert.alert('Abmelden', 'Möchten Sie sich wirklich abmelden?', [
@@ -35,7 +38,7 @@ export default function ProfileScreen() {
           <Text style={styles.label}>Status:</Text>
           <Text style={styles.value}>{user?.membershipStatus}</Text>
         </View>
-        {user?.handicap !== null && (
+        {user?.handicap !== null && user?.handicap !== undefined && (
           <View style={styles.infoRow}>
             <Text style={styles.label}>Handicap:</Text>
             <Text style={styles.value}>{user?.handicap}</Text>
@@ -43,7 +46,28 @@ export default function ProfileScreen() {
         )}
       </View>
 
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>App-Einstellungen</Text>
+        <TouchableOpacity style={styles.settingRow} onPress={showPersonaModal}>
+          <View style={styles.settingLeft}>
+            <Ionicons
+              name={personaMode === 'beginner' ? 'school' : 'golf'}
+              size={24}
+              color={COLORS.primary}
+            />
+            <View style={styles.settingText}>
+              <Text style={styles.settingLabel}>App-Modus</Text>
+              <Text style={styles.settingValue}>
+                {personaMode === 'beginner' ? 'Beginner' : 'Vollmitglied'}
+              </Text>
+            </View>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={COLORS.text.secondary} />
+        </TouchableOpacity>
+      </View>
+
       <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+        <Ionicons name="log-out-outline" size={20} color="#fff" />
         <Text style={styles.logoutButtonText}>Abmelden</Text>
       </TouchableOpacity>
     </ScrollView>
@@ -52,15 +76,90 @@ export default function ProfileScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
-  header: { padding: SPACING.lg, paddingTop: SPACING.xxl, backgroundColor: COLORS.primary, alignItems: 'center' },
-  name: { fontSize: FONT_SIZES.xl, fontWeight: 'bold', color: '#fff', marginBottom: SPACING.xs },
-  email: { fontSize: FONT_SIZES.sm, color: '#fff', opacity: 0.9, marginBottom: SPACING.xs },
-  membership: { fontSize: FONT_SIZES.xs, color: '#fff', opacity: 0.8 },
-  section: { padding: SPACING.lg, backgroundColor: COLORS.surface, marginTop: 1 },
-  sectionTitle: { fontSize: FONT_SIZES.lg, fontWeight: '600', color: COLORS.text.primary, marginBottom: SPACING.md },
-  infoRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: SPACING.sm },
-  label: { fontSize: FONT_SIZES.md, color: COLORS.text.secondary },
-  value: { fontSize: FONT_SIZES.md, color: COLORS.text.primary, fontWeight: '500' },
-  logoutButton: { margin: SPACING.lg, padding: SPACING.md, backgroundColor: COLORS.error, borderRadius: 8, alignItems: 'center' },
-  logoutButtonText: { color: '#fff', fontSize: FONT_SIZES.md, fontWeight: '600' },
+  header: {
+    padding: SPACING.lg,
+    paddingTop: SPACING.xxl,
+    backgroundColor: COLORS.primary,
+    alignItems: 'center',
+  },
+  name: {
+    fontSize: FONT_SIZES.xl,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: SPACING.xs,
+  },
+  email: {
+    fontSize: FONT_SIZES.sm,
+    color: '#fff',
+    opacity: 0.9,
+    marginBottom: SPACING.xs,
+  },
+  membership: {
+    fontSize: FONT_SIZES.xs,
+    color: '#fff',
+    opacity: 0.8,
+  },
+  section: {
+    padding: SPACING.lg,
+    backgroundColor: COLORS.surface,
+    marginTop: 1,
+  },
+  sectionTitle: {
+    fontSize: FONT_SIZES.lg,
+    fontWeight: '600',
+    color: COLORS.text.primary,
+    marginBottom: SPACING.md,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: SPACING.sm,
+  },
+  label: {
+    fontSize: FONT_SIZES.md,
+    color: COLORS.text.secondary,
+  },
+  value: {
+    fontSize: FONT_SIZES.md,
+    color: COLORS.text.primary,
+    fontWeight: '500',
+  },
+  settingRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: SPACING.sm,
+  },
+  settingLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.md,
+  },
+  settingText: {
+    gap: SPACING.xs / 2,
+  },
+  settingLabel: {
+    fontSize: FONT_SIZES.md,
+    color: COLORS.text.primary,
+    fontWeight: '500',
+  },
+  settingValue: {
+    fontSize: FONT_SIZES.sm,
+    color: COLORS.text.secondary,
+  },
+  logoutButton: {
+    margin: SPACING.lg,
+    padding: SPACING.md,
+    backgroundColor: COLORS.error,
+    borderRadius: 8,
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: SPACING.sm,
+  },
+  logoutButtonText: {
+    color: '#fff',
+    fontSize: FONT_SIZES.md,
+    fontWeight: '600',
+  },
 });

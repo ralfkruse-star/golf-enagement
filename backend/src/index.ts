@@ -25,6 +25,8 @@ import tournamentRoutes from './modules/tournament/tournament.routes';
 import gamificationRoutes from './modules/gamification/gamification.routes';
 import weatherRoutes from './modules/weather/weather.routes';
 import analyticsRoutes from './modules/analytics/analytics.routes';
+import emailMarketingRoutes from './modules/email-marketing/email-marketing.routes';
+import aiRecommendationsRoutes from './modules/ai-recommendations/ai-recommendations.routes';
 
 const app = express();
 const httpServer = createServer(app);
@@ -104,6 +106,8 @@ apiRouter.use('/tournaments', tournamentRoutes);
 apiRouter.use('/gamification', gamificationRoutes);
 apiRouter.use('/weather', weatherRoutes);
 apiRouter.use('/analytics', analyticsRoutes);
+apiRouter.use('/email-marketing', emailMarketingRoutes);
+apiRouter.use('/ai', aiRecommendationsRoutes);
 
 app.use(`/api/${env.API_VERSION}`, apiRouter);
 
